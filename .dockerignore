@@ -1,0 +1,9 @@
+.git
+.gitignore
+.envrc
+.direnv
+flake.nix
+flake.lock
+result
+*.md
+docker-compose.yml
