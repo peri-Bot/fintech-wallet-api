@@ -1,0 +1,101 @@
+services:
+  postgres-primary:
+    image: bitnami/postgresql:16
+    container_name: wallet-pg-primary
+    environment:
+      - POSTGRESQL_DATABASE=wallet_db
+      - POSTGRESQL_USERNAME=wallet_user
+      - POSTGRESQL_PASSWORD=wallet_secret
+      - POSTGRESQL_POSTGRES_PASSWORD=postgres_root
+      # Replication config
+      - POSTGRESQL_REPLICATION_MODE=master
+      - POSTGRESQL_REPLICATION_USER=repl_user
+      - POSTGRESQL_REPLICATION_PASSWORD=repl_secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_primary_data:/bitnami/postgresql
+    networks:
+      - wallet-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wallet_user -d wallet_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-replica:
+    image: bitnami/postgresql:16
+    container_name: wallet-pg-replica
+    depends_on:
+      postgres-primary:
+        condition: service_healthy
+    environment:
+      - POSTGRESQL_REPLICATION_MODE=slave
+      - POSTGRESQL_REPLICATION_USER=repl_user
+      - POSTGRESQL_REPLICATION_PASSWORD=repl_secret
+      - POSTGRESQL_MASTER_HOST=postgres-primary
+      - POSTGRESQL_MASTER_PORT_NUMBER=5432
+      - POSTGRESQL_PASSWORD=wallet_secret
+    ports:
+      - "5433:5432"
+    volumes:
+      - pg_replica_data:/bitnami/postgresql
+    networks:
+      - wallet-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wallet_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: wallet-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - wallet-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  wallet-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: wallet-api
+    depends_on:
+      postgres-primary:
+        condition: service_healthy
+      postgres-replica:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - PRIMARY_DB_HOST=postgres-primary
+      - PRIMARY_DB_PORT=5432
+      - REPLICA_DB_HOST=postgres-replica
+      - REPLICA_DB_PORT=5432
+      - DB_USER=wallet_user
+      - DB_PASSWORD=wallet_secret
+      - DB_NAME=wallet_db
+      - REDIS_ADDR=redis:6379
+      - SERVER_PORT=8080
+    ports:
+      - "8080:8080"
+    networks:
+      - wallet-net
+    restart: unless-stopped
+
+volumes:
+  pg_primary_data:
+  pg_replica_data:
+  redis_data:
+
+networks:
+  wallet-net:
+    driver: bridge
