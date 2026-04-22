@@ -1,0 +1,100 @@
+# Binaries
+wallet-api
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker volumes
+pg_primary_data/
+pg_replica_data/
+redis_data/
+
+# =========================
+# Go / Golang
+# =========================
+# Compiled Object files, Static and Dynamic libs (Shared Objects)
+*.o
+*.a
+*.so
+
+# Architecture specific folders/files
+_obj
+_test
+
+# Go test coverage profiles
+*.out
+coverage.html
+
+# Vendor directory (Nix usually handles deps, but ignore if you use `go mod vendor`)
+vendor/
+
+# Binaries for standard OSes (Replace 'wallet-api' with your actual binary name if needed)
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+bin/
+wallet-api
+
+# =========================
+# Nix & Environment
+# =========================
+# Nix build outputs (symlinks created by `nix build`)
+result
+result-*
+
+# Direnv (If you use direnv with Nix to auto-load your shell)
+.direnv/
+.envrc.cache
+
+# =========================
+# Docker & Infrastructure Data
+# =========================
+# Ignore database and redis data directories mapped by docker-compose volumes
+# (Crucial: You do not want to commit actual PostgreSQL ledger data to Git)
+postgres-primary-data/
+postgres-replica-data/
+redis-data/
+data/
+
+# Local docker-compose overrides
+docker-compose.override.yml
+
+# =========================
+# Environment Variables & Secrets
+# =========================
+# Never commit your API keys, Stripe mocks, or DB passwords
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# =========================
+# IDEs and OS Specific
+# =========================
+# MacOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# VS Code / Cursor
+.vscode/
+*.code-workspace
+
+# JetBrains / GoLand
+.idea/
+*.iml
